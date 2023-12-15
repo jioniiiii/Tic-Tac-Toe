@@ -18,7 +18,7 @@ const DOM = (function(){
         btnRestart.addEventListener('click', function(){
             gameBoard.resetBoard();
             control.resetPlayerTrun();
-            control.playingGame();
+            control.addEventListener();
             console.log("clear");
         })
     }
@@ -45,7 +45,7 @@ const gameBoard = (function(){
     }
 
     function resetBoard(){
-        const squares = boardCont.querySelectorAll(".square");
+        let squares = boardCont.querySelectorAll(".square");
         squares.forEach(square => {
             square.innerHTML = ""; 
         })
@@ -53,6 +53,8 @@ const gameBoard = (function(){
         for(let i = 0; i < board.length; i++){
             board[i] = undefined;
         }
+
+        squares = boardCont.querySelectorAll(".square");
     }
 
     initBoard();
@@ -78,6 +80,7 @@ const control = (function(){
     };
 
     let playerTurn = true;
+    let clickHandlers = [];
     const gameBoardArray = gameBoard.getBoard();
     const boardCont = DOM.getBoardCont();
     let squares = boardCont.querySelectorAll(".square");
@@ -107,49 +110,64 @@ const control = (function(){
         return !board.includes(undefined);//if no empty array tie
     }
 
-    function playingGame() {
-        squares.forEach((square, index) => {
-            square.addEventListener('click', function handleSquareClick(){
-                if (!gameBoardArray[index]) {
-                    const marker = document.createElement('span');
-                    marker.textContent = playerTurn ? player1.marker : player2.marker;
-                    square.appendChild(marker);
-                    
-                    gameBoardArray[index] = playerTurn ? player1.marker : player2.marker;
-                    
-                    if(checkWinner(gameBoardArray,player1.marker)){
-                        removeEventListener();
-                        console.log(`${player1.name} wins!`);
-                        
-                    }
-                    else if(checkWinner(gameBoardArray,player2.marker)){
-                        alert(`${player2.name} wins!`);
-                        removeEventListener();
-                    }
-                    else if(checkTie(gameBoardArray)){
-                        alert("tie!");
-                        removeEventListener();
-                    }
-                    else{
-                        console.log("gmae still going");
-                    }
-                    playerTurn = !playerTurn;
+    
+    function handleSquareClick(index){
+        const clickHandler = function(){
+            if(!gameBoardArray[index]){
 
-                    function removeEventListener(){
-                        squares.forEach((square) => {
-                            square.removeEventListener('click', handleSquareClick);
-                        })
-                    }
+                const marker = document.createElement("span");
+                marker.textContent = playerTurn ? player1.marker : player2.marker;
+                squares[index].appendChild(marker);
+    
+                gameBoardArray[index] = playerTurn ? player1.marker : player2.marker;
+    
+                if(checkWinner(gameBoardArray, player1.marker)){
+                    alert(`${player1.name} wins!`);
+                    removeEventListener();
                 }
-            });
-        });
+                else if(checkWinner(gameBoardArray, player2.marker)){
+                    alert(`${player2.name} wins!`);
+                    removeEventListener();
+                } 
+                else if(checkTie(gameBoardArray)){
+                    alert("Tie!");
+                    removeEventListener();
+                } 
+                else{
+                    console.log("Game still going");
+                }
+    
+                playerTurn = !playerTurn;
+            }
+        };
+        clickHandlers[index] = clickHandler;
+    
+        return clickHandler;
     }
 
-    playingGame();
+    function addEventListener(){
+        squares.forEach((square, index) => {
+            const clickHandler = handleSquareClick(index);
+            clickHandlers.push(clickHandler);
+            square.addEventListener('click', clickHandler);
+        });
+    }
+    
+    function removeEventListener(){
+        clickHandlers.forEach((clickHandler, index) => {
+            if(squares[index]){
+                squares[index].removeEventListener('click', clickHandler);
+            }
+        });
+        clickHandlers = [];
+    }
+
+    addEventListener();
+
     return{
         resetPlayerTrun: function(){
             playerTurn = true;
         },
-        playingGame: playingGame
+        addEventListener: addEventListener
     };
 })();
