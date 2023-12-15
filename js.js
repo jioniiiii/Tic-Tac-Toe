@@ -16,11 +16,17 @@ const DOM = (function(){
 
     function reset(){
         btnRestart.addEventListener('click', function(){
-            gameBoard.resetBoard();
-            control.resetPlayerTrun();
-            control.addEventListener();
-            console.log("clear");
-        })
+            if(!gameBoardIsEmpty()){
+                gameBoard.resetBoard();
+                control.resetPlayerTrun();
+                control.addEventListener();
+                console.log("clear");
+            }
+        });
+    }
+
+    function gameBoardIsEmpty() {
+        return gameBoard.getBoard().every(square => square === undefined);
     }
 
     reset();
@@ -53,7 +59,6 @@ const gameBoard = (function(){
         for(let i = 0; i < board.length; i++){
             board[i] = undefined;
         }
-
         squares = boardCont.querySelectorAll(".square");
     }
 
